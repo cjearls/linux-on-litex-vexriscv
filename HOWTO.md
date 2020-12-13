@@ -89,3 +89,14 @@ $ echo -ne "\x01\x01" > /dev/mtd0
 
 **Configure/Use the SDCard:**
 TODO
+
+To put files (such as programs) on the board, put the files you want in the directory you want them in at
+linux-on-litex-vexriscv/buildroot/board/litex_vexriscv/rootfs_overlay
+Then go to the buildroot directory and run
+make BR2_EXTERNAL=../linux-on-litex-vexriscv/buildroot/ litex_vexriscv_defconfig && make
+Then copy "Image" and "rootfs.cpio" from buildroot/output/images to the SD card that plugs into the  board. Remember to umount the sd card. If things aren't working properly, try using "make.py --board=orangecrab --load" to reload the FPGA image, then try lxterm'ing in again.
+
+To recompile the FPGA image, clone the https://github.com/SpinalHDL/VexRiscv.git repository, enter the root directory, and run 'sbt "runMain vexriscv.GenCoreDefault --externalInterruptArray=true --csrPluginConfig=linux-minimal"' to generate a file named "VexRiscv.v". Once this file is created, rename it to VexRiscv.v and VexRiscv.yaml to VexRiscv_Linux.v and VexRiscv_Linux.yaml, then copy these two files into pythondata-cpu-vexriscv/pythondata_cpu_vexriscv/verilog/.
+Finally, go into linux-on-litex-vexriscv directory and run "./make.py --board=orangecrab --build" to build the new VexRiscv FPGA bitstream, then "./make.py --board=orangecrab --load" while connected to the board over USB (board must be in flash mode, do so by unplugging, holding button down, and plugging in while the button is held down) to load the FPGA bitstream onto the board.
+
+To compile C programs for use on the board, run the riscv64-unknown-elf-gcc with the -march=rv32im -mabi=ilp32 flags enabled. The march flag only enables the RISCV I and M instructions, more letters need to be added here if you want support for more instruction features. Then, use the above information to copy the resultant file over to the orangecrab board.
